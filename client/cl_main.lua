@@ -37,9 +37,10 @@ Citizen.CreateThread(function()
                 if isInventoryOpen then
                     for i,k in pairs(InventoryItems) do
                         if k.type  == "item_weapon" and not WeaponsWithoutAmmo[k.name] then
-                            if HasPedGotWeapon(PlayerPedId(), tonumber(k.weaponHash)) then
-                                if UsedWeapons[tonumber(k.weaponHash)] and UsedWeapons[tonumber(k.weaponHash)].meta.uid == k.meta.uid then
-                                    InventoryItems[i].amount = GetAmmoInPedWeapon(PlayerPedId(), tonumber(k.weaponHash))
+                            local wephash = tonumber(k.weaponHash) or tonumber(k.meta.weaponhash)
+                            if HasPedGotWeapon(PlayerPedId(), wephash) then
+                                if UsedWeapons[wephash] and UsedWeapons[wephash].meta.uid == k.meta.uid then
+                                    InventoryItems[i].amount = GetAmmoInPedWeapon(PlayerPedId(), wephash)
                                 end
                             end
                         end
@@ -165,9 +166,10 @@ AddEventHandler("redemrp_inventory:SendItems", function(data, data2, weight , ot
         _target = target
         for i,k in pairs(InventoryItems) do
             if k.type  == "item_weapon" and not WeaponsWithoutAmmo[k.name] then
-                if HasPedGotWeapon(PlayerPedId(), tonumber(k.weaponHash)) then
-                    if UsedWeapons[tonumber(k.weaponHash)].meta.uid == k.meta.uid then
-                        InventoryItems[i].amount = GetAmmoInPedWeapon(PlayerPedId(), tonumber(k.weaponHash))
+                local wephash = tonumber(k.weaponHash) or tonumber(k.meta.weaponhash)
+                if HasPedGotWeapon(PlayerPedId(), wephash) then
+                    if UsedWeapons[wephash].meta.uid == k.meta.uid then
+                        InventoryItems[i].amount = GetAmmoInPedWeapon(PlayerPedId(), wephash)
                     end
                 end
             end
@@ -292,7 +294,6 @@ AddEventHandler('redemrp_inventory:UpdatePickups', function(pick)
 end)
 
 local PickupPromptGroup = GetRandomIntInRange(0, 0xffffff)
-print('PickupPromptGroup: ' .. PickupPromptGroup)
 local PickupPrompt
 local PromptActive = false
 
@@ -512,9 +513,9 @@ Citizen.CreateThread(function()
                 if CraftingTarget == k and (v.requireJob == PlayerJob or v.requireJob  == "empty")then
 		   
                     if IsControlJustReleased(0, 0xD9D0E1C0) then
-                                                CurrentCraftingType = v.type
+                        CurrentCraftingType = v.type
 						isInventoryOpen = true
-                                                SendNUIMessage({
+                        SendNUIMessage({
 							type = 1,
 							inventory = isInventoryOpen,
 							otherinventory = isOtherOpen,

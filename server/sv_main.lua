@@ -80,7 +80,7 @@ AddEventHandler("redemrp_inventory:update", function(_type ,data , target, Locke
                         addItemLocker(data.name, data.amount, data.meta, LockerID)
                     end
                     if itemData.type == "item_weapon" then
-                        TriggerClientEvent("redemrp_inventory:removeWeapon", _source, itemData.weaponHash)
+                        TriggerClientEvent("redemrp_inventory:removeWeapon", _source, itemData.weaponHash or data.meta.weaponhash)
                     end
                 end
             elseif _type == "add" then
@@ -114,7 +114,7 @@ AddEventHandler("redemrp_inventory:update", function(_type ,data , target, Locke
                             addItem(data.name, data.amount, data.meta, identifier , charid, lvl)
                         else
                             if itemData.type == "item_weapon" then
-                                TriggerClientEvent("redemrp_inventory:removeWeapon", _source, itemData.weaponHash)
+                                TriggerClientEvent("redemrp_inventory:removeWeapon", _source, itemData.weaponHash  or data.meta.weaponhash)
                             end
                         end
                     end
@@ -124,7 +124,7 @@ AddEventHandler("redemrp_inventory:update", function(_type ,data , target, Locke
                             addItem(data.name, data.amount, data.meta, identifier_target ,charid_target , lvl_target)
                         else
                             if itemData.type == "item_weapon" then
-                                TriggerClientEvent("redemrp_inventory:removeWeapon", _target, itemData.weaponHash)
+                                TriggerClientEvent("redemrp_inventory:removeWeapon", _target, itemData.weaponHash  or data.meta.weaponhash)
                             end
                         end
                     end
@@ -314,7 +314,7 @@ AddEventHandler("redemrp_inventory:drop", function(data)
             TriggerClientEvent("redemrp_inventory:SendItems", _source, PrepareToOutput(Inventory[identifier .. "_" .. charid]) ,  {}, InventoryWeight[identifier .. "_" .. charid])
             TriggerClientEvent("redemrp_inventory:CreatePickup", _source, data.name , data.amount, data.meta , itemData.label, itemData.imgsrc)
             if itemData.type == "item_weapon" then
-                TriggerClientEvent("redemrp_inventory:removeWeapon", _source, itemData.weaponHash)
+                TriggerClientEvent("redemrp_inventory:removeWeapon", _source, itemData.weaponHash or data.meta.weaponhash)
             end
         end)
     end
@@ -328,7 +328,7 @@ AddEventHandler("redemrp_inventory:AddPickupServer", function(name, amount, meta
         meta = meta,
         amount = amount,
         label = label,
-        img = img,
+        img = img or meta.resim,
         inRange = false,
         coords = {x = x, y = y, z = z}
     }
@@ -371,16 +371,17 @@ RegisterServerEvent("redemrp_inventory:use")
 AddEventHandler("redemrp_inventory:use", function(data)
     local _source = source
     local itemData = Config.Items[data.name]
+    local meta = data.meta
     if not itemData then
 		print(data.name.. " this item not registered on config.lua")
 		return
 	end
     if itemData.canBeUsed then
-        TriggerEvent("RegisterUsableItem:"..data.name, _source)
+        TriggerEvent("RegisterUsableItem:"..data.name, _source, data.meta or nil)
         TriggerClientEvent("ak_notification:Left", _source, "Użyto przedmiotu" , itemData.label, tonumber(1000))
     end
     if itemData.type == "item_weapon" then
-        TriggerClientEvent('redemrp_inventory:UseWeapon', _source , itemData.weaponHash, data.amount ,data.meta , data.name)
+        TriggerClientEvent('redemrp_inventory:UseWeapon', _source , itemData.weaponHash or meta.weaponhash, data.amount ,data.meta , data.name)
     end
 end)
 --==================== U S E =======================================
@@ -396,6 +397,7 @@ AddEventHandler("redemrp_inventory:ChangeAmmoAmount", function(table)
         local charid = user.getSessionVar("charid")
         local player_inventory =  Inventory[identifier .. "_" .. charid]
         for i,k in pairs(_table) do
+            print(i,json.encode(k))
             local item , id = getInventoryItemFromName(k.name, player_inventory ,k.meta)
             item.setAmount(tonumber(k.Ammo))
         end
@@ -503,7 +505,7 @@ function addItem (name, amount ,meta , identifier , charid , lvl )
             if not item then
                 if itemData.type == "item_standard" then
 				  if _amount >0 then
-                    if InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount) <= Config.MaxWeight  and itemData.limit >= _amount then
+                    if InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount) <= Config.MaxWeight  and itemData.limit or meta.limit >= _amount then
                         table.insert(player_inventory, CreateItem(_name ,_amount, _meta))
                         InventoryWeight[identifier .. "_" .. charid] = InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount)
                         output = true
@@ -519,7 +521,7 @@ function addItem (name, amount ,meta , identifier , charid , lvl )
             else
                 if itemData.type == "item_standard" then
 				  if _amount >0 then
-                    if InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount) <= Config.MaxWeight and itemData.limit >= _amount + item.getAmount() then
+                    if InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount) <= Config.MaxWeight and itemData.limit or meta.limit >= _amount + item.getAmount() then
                         item.addAmount(_amount)
                         InventoryWeight[identifier .. "_" .. charid] = InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount)
                         output = true
@@ -652,15 +654,15 @@ AddEventHandler("redemrp_inventory:GetLocker", function(id)
         local charid = user.getSessionVar("charid")
         local job = user.getJob()
         if id == "private" then
-		if CreatedLockers[id] ~= nil then
-            if CreatedLockers[id].requireJob == job or CreatedLockers[id].requireJob == nil then
-                TriggerClientEvent("redemrp_inventory:SendItems", _source, PrepareToOutput(Inventory[identifier .. "_" .. charid]) ,  PrepareToOutput(Locker[identifier .. "_" .. charid]) , InventoryWeight[identifier .. "_" .. charid], true)
+            if CreatedLockers[id] ~= nil then
+                if CreatedLockers[id].requireJob == job or CreatedLockers[id].requireJob == nil then
+                    TriggerClientEvent("redemrp_inventory:SendItems", _source, PrepareToOutput(Inventory[identifier .. "_" .. charid]) ,  PrepareToOutput(Locker[identifier .. "_" .. charid]) , InventoryWeight[identifier .. "_" .. charid], true)
+                end
+            else
+                            TriggerClientEvent("redemrp_inventory:SendItems", _source, PrepareToOutput(Inventory[identifier .. "_" .. charid]) ,  PrepareToOutput(Locker[identifier .. "_" .. charid]) , InventoryWeight[identifier .. "_" .. charid], true)
             end
-		else
-		                TriggerClientEvent("redemrp_inventory:SendItems", _source, PrepareToOutput(Inventory[identifier .. "_" .. charid]) ,  PrepareToOutput(Locker[identifier .. "_" .. charid]) , InventoryWeight[identifier .. "_" .. charid], true)
-		end
         else
-            if CreatedLockers[id].requireJob == job or CreatedLockers[id].requireJob == nil  then
+            if CreatedLockers[id].requireJob == job or CreatedLockers[id].requireJob == nil or CreatedLockers[id].requireJob == "all"   then
                 TriggerClientEvent("redemrp_inventory:SendItems", _source, PrepareToOutput(Inventory[identifier .. "_" .. charid]) ,  PrepareToOutput(Locker[id]) , InventoryWeight[identifier .. "_" .. charid] , true)
             end
         end
@@ -832,15 +834,15 @@ function SharedInventoryFunctions.getItem(_source, name , meta)
                             local freeWeight = Config.MaxWeight - InventoryWeight[identifier .. "_" .. charid]
                             local canBeAdded = math.floor(freeWeight/data.ItemInfo.weight)
 							if canBeAdded > amount then
-								canBeAdded = data.ItemInfo.limit - data.ItemAmount
+								canBeAdded = (data.ItemInfo.limit or meta.limit) - data.ItemAmount
 							end
 							output = addItem(name, canBeAdded, data.ItemMeta, identifier , charid , lvl)
 							if amount-canBeAdded > 0 then
-								TriggerClientEvent("redemrp_inventory:CreatePickup", _source, name , amount-canBeAdded, data.ItemMeta, data.ItemInfo.label, data.ItemInfo.imgsrc)
+								TriggerClientEvent("redemrp_inventory:CreatePickup", _source, name , amount-canBeAdded, data.ItemMeta, data.ItemInfo.label, data.ItemInfo.imgsrc  or meta.resim)
 							end
 					   else
-                            TriggerClientEvent("redemrp_inventory:CreatePickup", _source, name , amount, data.ItemMeta, data.ItemInfo.label, data.ItemInfo.imgsrc)
-							TriggerClientEvent("redemrp_inventory:removeWeapon", _source, data.ItemInfo.weaponHash)
+                            TriggerClientEvent("redemrp_inventory:CreatePickup", _source, name , amount, data.ItemMeta, data.ItemInfo.label, data.ItemInfo.imgsrc  or meta.resim)
+							TriggerClientEvent("redemrp_inventory:removeWeapon", _source, data.ItemInfo.weaponHash or meta.weaponhash)
 						end
 					end
                     if output then
@@ -854,7 +856,7 @@ function SharedInventoryFunctions.getItem(_source, name , meta)
                     if output then
                         TriggerClientEvent("redemrp_inventory:SendItems", _source, PrepareToOutput(Inventory[identifier .. "_" .. charid]) ,  {}, InventoryWeight[identifier .. "_" .. charid])
 						 if data.ItemInfo.type == "item_weapon" then
-							TriggerClientEvent("redemrp_inventory:removeWeapon", _source, data.ItemInfo.weaponHash) 
+							TriggerClientEvent("redemrp_inventory:removeWeapon", _source, data.ItemInfo.weaponHash or meta.weaponhash) 
 						 end
                     end
                     return output
@@ -875,16 +877,16 @@ function SharedInventoryFunctions.getItem(_source, name , meta)
                             local freeWeight = Config.MaxWeight - InventoryWeight[identifier .. "_" .. charid]
                             local canBeAdded = math.floor(freeWeight/data.ItemInfo.weight)
 							if canBeAdded > amount then
-								canBeAdded = data.ItemInfo.limit
+								canBeAdded = data.ItemInfo.limit or meta.limit
 							end
 							if canBeAdded > 0 then
 								output =  addItem(name, canBeAdded, meta, identifier , charid , lvl)
-								TriggerClientEvent("redemrp_inventory:CreatePickup", _source, name , amount-canBeAdded, meta or {}, data.ItemInfo.label, data.ItemInfo.imgsrc)
+								TriggerClientEvent("redemrp_inventory:CreatePickup", _source, name , amount-canBeAdded, meta or {}, data.ItemInfo.label, data.ItemInfo.imgsrc  or meta.resim)
 							end
 					   else
 							local freeWeight = Config.MaxWeight - InventoryWeight[identifier .. "_" .. charid]
 							if freeWeight < data.ItemInfo.weight then
-								TriggerClientEvent("redemrp_inventory:CreatePickup", _source, name , amount,  meta or {}, data.ItemInfo.label, data.ItemInfo.imgsrc)
+								TriggerClientEvent("redemrp_inventory:CreatePickup", _source, name , amount,  meta or {}, data.ItemInfo.label, data.ItemInfo.imgsrc  or meta.resim)
 							else
 								output =  addItem(name, amount, meta, identifier , charid , lvl)
 							end
