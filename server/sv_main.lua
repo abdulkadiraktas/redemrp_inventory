@@ -376,7 +376,7 @@ AddEventHandler("redemrp_inventory:use", function(data)
 		return
 	end
     if itemData.canBeUsed then
-        TriggerEvent("RegisterUsableItem:"..data.name, _source, data.meta or nil)
+        TriggerEvent("RegisterUsableItem:"..data.name, _source)
         TriggerClientEvent("ak_notification:Left", _source, "Użyto przedmiotu" , itemData.label, tonumber(1000))
     end
     if itemData.type == "item_weapon" then
