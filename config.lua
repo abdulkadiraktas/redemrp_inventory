@@ -516,6 +516,112 @@ Config.Items = {
         imgsrc = "items/WEAPON_KIT_BINOCULARS.png",
         type = "item_weapon"
     },
+    ["fish"] =  --Do not change item name
+{
+    label = "Fish",  --You can change this one
+    description = "?????????",
+    weight = 0.3,
+    canBeDropped = true,
+    canBeUsed = false,
+    requireLvl = 0,
+    limit = 20,
+    imgsrc = "items/provision_fish_bluegill.png",
+    type = "item_standard",
+
+
+},
+["p_baitBread01x"] =
+{
+    label = "Bread Bait",
+    description = "?????????",
+    weight = 0.01,
+    canBeDropped = true,
+    canBeUsed = true,
+    requireLvl = 0,
+    limit = 32,
+    imgsrc = "items/bread_bait.png",
+    type = "item_standard",
+
+},
+["p_baitCheese01x"] =
+{
+    label = "Cheese Bait",
+    description = "?????????",
+    weight = 0.01,
+    canBeDropped = true,
+    canBeUsed = true,
+    requireLvl = 0,
+    limit = 48,
+    imgsrc = "items/cheese_bait.png",
+    type = "item_standard",
+
+},
+["p_baitCorn01x"] =
+{
+    label = "Corn Bait",
+    description = "?????????",
+    weight = 0.01,
+    canBeDropped = true,
+    canBeUsed = true,
+    requireLvl = 0,
+    limit = 48,
+    imgsrc = "items/corn_bait.png",
+    type = "item_standard",
+
+},
+["p_baitCricket01x"] =
+{
+    label = "Cricket Bait",
+    description = "?????????",
+    weight = 0.01,
+    canBeDropped = true,
+    canBeUsed = true,
+    requireLvl = 0,
+    limit = 32,
+    imgsrc = "items/cricket_bait.png",
+    type = "item_standard",
+
+},
+["p_finisheDragonfly01x"] =
+{
+    label = "River Bait",
+    description = "?????????",
+    weight = 0.05,
+    canBeDropped = true,
+    canBeUsed = true,
+    requireLvl = 0,
+    limit = 5,
+    imgsrc = "items/river_bait.png",
+    type = "item_standard",
+
+},
+
+["p_finisdFishlure01x"] =
+{
+    label = "Lake Bait",
+    description = "?????????",
+    weight = 0.05,
+    canBeDropped = true,
+    canBeUsed = true,
+    requireLvl = 0,
+    limit = 5,
+    imgsrc = "items/lake_bait.png",
+    type = "item_standard",
+
+},
+["p_finishdCrawd01x"] =
+{
+    label = "Swamp Bait",
+    description = "?????????",
+    weight = 0.05,
+    canBeDropped = true,
+    canBeUsed = true,
+    requireLvl = 0,
+    limit = 5,
+    imgsrc = "items/swamp_bait.png",
+    type = "item_standard",
+
+},
 }
 exports("GetItemsList", function()
     return Config.Items
