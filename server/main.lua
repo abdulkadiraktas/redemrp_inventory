@@ -608,7 +608,7 @@ AddEventHandler(
         local itemData = Config.Items[data.name]
         local Player = RedEM.GetPlayer(_source)
         if itemData.canBeUsed then
-            TriggerEvent("RegisterUsableItem:" .. data.name, _source, data)
+            TriggerEvent("RegisterUsableItem:" .. data.name, _source, data, data.meta or nil)
             --TriggerClientEvent("ak_notification:Left", _source, "Użyto przedmiotu", itemData.label, tonumber(1000))
             TriggerClientEvent("redem_roleplay:NotifyLeft", _source, "Item Used", itemData.label, "generic_textures", "tick", 3000)
             TriggerClientEvent("redemrp_inventory:PlaySound", _source, 1)
@@ -946,10 +946,8 @@ function addItem(name, amount, meta, identifier, charid, lvl)
         if not item then
             if itemData.type == "item_standard" then
                 if _amount > 0 then
-                    if
-                        InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount) <=
-                            Config.MaxWeight and itemData.limit >= _amount
-                        then
+                    if itemData.limit < _amount then _amount = itemData.limit end
+                    if  InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount) <= Config.MaxWeight and itemData.limit >= _amount then
                         table.insert(Inventory[identifier .. "_" .. charid], CreateItem(_name, _amount, _meta))
                         InventoryWeight[identifier .. "_" .. charid] =
                             InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount)
@@ -969,10 +967,8 @@ function addItem(name, amount, meta, identifier, charid, lvl)
         else
             if itemData.type == "item_standard" then
                 if _amount > 0 then
-                    if
-                        InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount) <=
-                            Config.MaxWeight and itemData.limit >= _amount + item.getAmount()
-                        then
+                    if itemData.limit < _amount + item.getAmount() then _amount = itemData.limit - item.getAmount() end
+                    if  InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount) <= Config.MaxWeight and itemData.limit >= _amount + item.getAmount() then
                         item.addAmount(_amount)
                         InventoryWeight[identifier .. "_" .. charid] =
                             InventoryWeight[identifier .. "_" .. charid] + (itemData.weight * _amount)
