@@ -37,10 +37,14 @@ Citizen.CreateThread(function()
                 if isInventoryOpen then
                     for i,k in pairs(InventoryItems) do
                         if k.type  == "item_weapon" and not WeaponsWithoutAmmo[k.name] then
-                            if HasPedGotWeapon(PlayerPedId(), tonumber(k.weaponHash)) then
-                                if UsedWeapons[tonumber(k.weaponHash)] and UsedWeapons[tonumber(k.weaponHash)].meta.uid == k.meta.uid then
-                                    InventoryItems[i].amount = GetAmmoInPedWeapon(PlayerPedId(), tonumber(k.weaponHash))
-                                end
+                            local wephash = tonumber(k.weaponHash) or tonumber(k.meta.weaponhash)
+                            if HasPedGotWeapon(PlayerPedId(), wephash) then
+                                local wep = UsedWeapons[wephash]
+                                if wep and wep.meta.uid == k.meta.uid then
+                                    UsedWeapons[wephash].meta = k.meta
+                                    InventoryItems[i].amount = GetAmmoInPedWeapon(PlayerPedId(), wephash)
+                                    local dayaniklilik = exports["qadr_weaponshop"]:dayanikliliksave(UsedWeapons[wephash],wephash)
+                                end                 
                             end
                         end
                     end
@@ -112,15 +116,21 @@ AddEventHandler('redemrp_inventory:UseWeapon', function(hash , ammoAmount, meta 
         TriggerServerEvent("redemrp_inventory:ChangeAmmoAmount", {UsedWeapons[tonumber(hash)]})
         UsedWeapons[tonumber(hash)] = nil
     end
-    ReloadWeapons()
+    ReloadWeapons(tonumber(hash))
 end)
 
-function ReloadWeapons()
-    Citizen.InvokeNative(0x1B83C0DEEBCBB214, PlayerPedId())
-    RemoveAllPedWeapons(PlayerPedId() , true , true)
-    for i,k in pairs(UsedWeapons) do
-        Citizen.InvokeNative(0x5E3BDDBCB83F3D84, PlayerPedId(), k.WeaponHash, 0, false, true)
-        SetPedAmmo(PlayerPedId(), k.WeaponHash , k.Ammo)
+function ReloadWeapons(wephash)
+    if wephash then
+        local silah = UsedWeapons[wephash]
+        local isadded = exports["qadr_weaponshop"]:silahver(wephash,silah)
+        if not isadded then UsedWeapons[wephash] = nil end
+    else
+        Citizen.InvokeNative(0x1B83C0DEEBCBB214, PlayerPedId())
+        RemoveAllPedWeapons(PlayerPedId() , true , true)
+        for i,k in pairs(UsedWeapons) do
+            local isadded = exports["qadr_weaponshop"]:silahver(k.WeaponHash,k)
+            if not isadded then UsedWeapons[i] = nil end
+        end
     end
 end
 
@@ -128,11 +138,11 @@ Citizen.CreateThread(function()
     while true do
         Wait(60000)
         if next(UsedWeapons) ~= nil  then
-		 for i,k in pairs(UsedWeapons) do
-		if not WeaponsWithoutAmmo[k.name] then
-			UsedWeapons[i].Ammo = GetAmmoInPedWeapon(PlayerPedId(), i)
-			end
-		 end
+            for i,k in pairs(UsedWeapons) do
+                if not WeaponsWithoutAmmo[k.name] then
+                    UsedWeapons[i].Ammo = GetAmmoInPedWeapon(PlayerPedId(), i)
+                end
+            end
             TriggerServerEvent("redemrp_inventory:ChangeAmmoAmount", UsedWeapons)
         end
     end
@@ -144,9 +154,9 @@ AddEventHandler("redemrp_inventory:SaveAmmo", function()
 		 for i,k in pairs(UsedWeapons) do
 			if not WeaponsWithoutAmmo[k.name] then
 				UsedWeapons[i].Ammo = GetAmmoInPedWeapon(PlayerPedId(), i)
-				end
-			 end
-            TriggerServerEvent("redemrp_inventory:ChangeAmmoAmount", UsedWeapons)
+            end
+        end
+        TriggerServerEvent("redemrp_inventory:ChangeAmmoAmount", UsedWeapons)
         end
 end)
 RegisterNetEvent("redemrp_inventory:SendItems")
@@ -165,9 +175,13 @@ AddEventHandler("redemrp_inventory:SendItems", function(data, data2, weight , ot
         _target = target
         for i,k in pairs(InventoryItems) do
             if k.type  == "item_weapon" and not WeaponsWithoutAmmo[k.name] then
-                if HasPedGotWeapon(PlayerPedId(), tonumber(k.weaponHash)) then
-                    if UsedWeapons[tonumber(k.weaponHash)].meta.uid == k.meta.uid then
-                        InventoryItems[i].amount = GetAmmoInPedWeapon(PlayerPedId(), tonumber(k.weaponHash))
+                local wephash = tonumber(k.weaponHash) or tonumber(k.meta.weaponhash)
+                if HasPedGotWeapon(PlayerPedId(), wephash) then
+                    local wep = UsedWeapons[wephash]
+                    if wep and wep.meta.uid == k.meta.uid then
+                        UsedWeapons[wephash].meta = k.meta
+                        InventoryItems[i].amount = GetAmmoInPedWeapon(PlayerPedId(), wephash)                        
+                        local dayaniklilik = exports["qadr_weaponshop"]:dayanikliliksave(UsedWeapons[wephash],wephash)
                     end
                 end
             end
@@ -234,27 +248,37 @@ function DrawText3D(x, y, z, text)
 end
 
 RegisterNetEvent('redemrp_inventory:CreatePickup')
-AddEventHandler('redemrp_inventory:CreatePickup', function(name, amount , meta, label, img)
+AddEventHandler('redemrp_inventory:CreatePickup', function(name, amount , meta, label, img , objectModel)
     local ped     = PlayerPedId()
     local coords  = GetEntityCoords(ped)
     local forward = GetEntityForwardVector(ped)
     local x, y, z = table.unpack(coords + forward * 1.6)
-    while not HasModelLoaded( GetHashKey("P_COTTONBOX01X") ) do
+    local _objectModel = objectModel or "P_COTTONBOX01X"
+	
+	if meta and meta.obj then
+		 _objectModel = meta.obj
+	end
+	
+    local objHash = GetHashKey(_objectModel)
+    while not HasModelLoaded( objHash ) do
         Wait(500)
-        modelrequest( GetHashKey("P_COTTONBOX01X") )
+        modelrequest(objHash )
     end
-    local obj = CreateObject("P_COTTONBOX01X", x, y, z, true, true, true)
+    local obj = CreateObject(objHash, x, y, z, true, true, true)
     PlaceObjectOnGroundProperly(obj)
     SetEntityAsMissionEntity(obj, true, true)
+	SetEntityCollision(obj, false)
     FreezeEntityPosition(obj , true)
-	local _coords = GetEntityCoords(obj)
-    TriggerServerEvent("redemrp_inventory:AddPickupServer",name, amount, meta, label, img, _coords.x, _coords.y, _coords.z, obj)
+    local _coords = GetEntityCoords(obj)
+    local netid = ObjToNet(obj)
+    TriggerServerEvent("redemrp_inventory:AddPickupServer",name, amount, meta, label, img, _coords.x, _coords.y, _coords.z, netid)
     PlaySoundFrontend("show_info", "Study_Sounds", true, 0)
-    SetModelAsNoLongerNeeded(GetHashKey("P_COTTONBOX01X"))
+    SetModelAsNoLongerNeeded(objHash)
 end)
 
 RegisterNetEvent('redemrp_inventory:removePickup')
-AddEventHandler('redemrp_inventory:removePickup', function(obj)
+AddEventHandler('redemrp_inventory:removePickup', function(netid)
+    local obj = NetToObj(netid)
     SetEntityAsMissionEntity(obj, false, true)
     NetworkRequestControlOfEntity(obj)
     local timeout = 0
@@ -289,6 +313,10 @@ end)
 RegisterNetEvent('redemrp_inventory:UpdatePickups')
 AddEventHandler('redemrp_inventory:UpdatePickups', function(pick)
     DroppedItems = pick
+end)
+
+RegisterCommand("dropitemsil",function(src,args,raw)
+    TriggerServerEvent("redemrp_inventory:RemoveAllPickupServer")
 end)
 
 local PickupPromptGroup = GetRandomIntInRange(0, 0xffffff)
@@ -336,13 +364,17 @@ Citizen.CreateThread(function()
                 end
 
                 if distance <= 5.0 then
-                    DrawText3D(v.coords.x, v.coords.y, v.coords.z+0.5, v.label.." ".."["..v.amount.."]")
+                    if v.meta.name then
+						DrawText3D(v.coords.x, v.coords.y, v.coords.z+0.5, v.meta.name .." ".."["..v.amount.."]")
+					else
+						DrawText3D(v.coords.x, v.coords.y, v.coords.z+0.5, v.label.." ".."["..v.amount.."]")
+					end
                 end
 
                 if distance <= 1.2 then
                     if  not PromptActive then
                         TaskLookAtEntity(playerPed, v.obj , 3000 ,2048 , 3)
-                        local PromptGroupName  = CreateVarString(10, 'LITERAL_STRING', v.label)
+                        local PromptGroupName  = CreateVarString(10, 'LITERAL_STRING', v.meta.name or v.label)
                         PromptSetActiveGroupThisFrame(PickupPromptGroup, PromptGroupName)
                         if PromptHasHoldModeCompleted(PickupPrompt) then
                             PromptActive = true

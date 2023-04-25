@@ -68,8 +68,6 @@ function createObjectBox(object) {
   return box;
 }
 
-
-
 function cloneBox(id) {
   object = getObjectById(id);
 
@@ -90,8 +88,6 @@ function cloneBox(id) {
     meta: object.meta
   });
 }
-
-
 
 function cloneBox2(id) {
   object = getObjectById(id);
@@ -245,7 +241,6 @@ function isObject(object) {
   return object != null && typeof object === 'object';
 }
 
-
 function removeObjects(arrayOfObjects) {
   arrayOfObjects.forEach(obj => {
     //Remove from grid
@@ -284,7 +279,8 @@ var grids = [
     dragStartPredicate: {
       handle: '.item-content-main, .item-content-amount-moved'
     }
-  }).on('send', data => onDragFinished(data))
+  })
+    .on('send', data => onDragFinished(data))
     .on('dragStart', function (item) {
       item.getElement().style.width = item.getWidth() + 'px';
       item.getElement().style.height = item.getHeight() + 'px';
@@ -310,14 +306,14 @@ var grids = [
     dragStartPredicate: {
       handle: '.item-content-main, .item-content-amount-moved'
     }
-  }).on('send', function (data) {
-    if (data.toGrid._id == 1) {
-      var object = getObjectById(data.item._id);
-      $.post('http:/redemrp_inventory/removeitem', JSON.stringify({ data: object, target: targetPlayerId }),);
-    }
-    onDragFinished(data)
-  }
-  )
+  })
+    .on('send', function (data) {
+      if (data.toGrid._id == 1) {
+        var object = getObjectById(data.item._id);
+        $.post('http:/redemrp_inventory/removeitem', JSON.stringify({ data: object, target: targetPlayerId }),);
+      }
+      onDragFinished(data)
+    })
     .on('beforeReceive', function (data) {
       if (data.fromGrid._id == 1) {
         var object = getObjectById(data.item._id);
@@ -383,7 +379,7 @@ var grids = [
       if (data.fromGrid._id == 2) {
         var object = getObjectById(data.item._id);
         $.post('http:/redemrp_inventory/useitem', JSON.stringify({ data: object }),);
-        ItemBack(data);
+        //ItemBack(data);
       } else {
         ItemBack(data);
       }
@@ -710,8 +706,6 @@ grids[1].on('dragMove', function (item, event) {
   }
 });
 
-
-
 function Over(item, desc, meta) {
   var name = document.getElementById("info2");
   var opis = document.getElementById("info3");
@@ -731,8 +725,6 @@ function Over(item, desc, meta) {
     }
   }
 }
-
-
 
 async function getItems(data, secondInventory, targetPlayer, weight) {
   objectsIn = data;
@@ -754,8 +746,6 @@ async function getItems(data, secondInventory, targetPlayer, weight) {
   grids[1].sort('amount:desc', { layout: 'instant' });
 }
 
-
-
 $(document).keyup(function (e) {
   if (e.keyCode == 27 || e.keyCode == 66 || e.keyCode == 8) { //hide eq
 
@@ -763,6 +753,3 @@ $(document).keyup(function (e) {
     $.post('http:/redemrp_inventory/close');
   }
 });
-
-
-
