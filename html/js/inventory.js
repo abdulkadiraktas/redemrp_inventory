@@ -183,6 +183,7 @@ $("#splitCancel").click(function () {
 function createObjectBox(object) {
 
     const box = document.createElement("div");
+    let _meta = object.meta;
     box.setAttribute('class', 'item');
     box.setAttribute('data-amount', object.amount);
     if (object.box > 3) {
@@ -223,48 +224,17 @@ function createObjectBox(object) {
             boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `" + object.description + "`)    ");
         }
     } else {
-        boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `" + object.description + "`)    ");
-    }
-
-
-    /*
-    $(boxContent).mousedown(function(event) {
-        switch (event.which) {
-            case 1: {
-                if(event.shiftKey) {
-                    console.log(JSON.stringify(object));
-                    if (object.box == 0) {
-                        var object = getObjectById(object.id);
-                        $.post(`https://${GetParentResourceName()}/additem`, JSON.stringify({
-                            data: object,
-                            target: targetPlayerId
-                        }));
-                    } else {
-                        var object = getObjectById(object.id);
-                        $.post(`https://${GetParentResourceName()}/removeitem`, JSON.stringify({
-                            data: object,
-                            target: targetPlayerId
-                        }));
-                    }
-                }
-                break;
-            }
-            case 3: {
-                if(event.shiftKey) {
-                    $(boxContent).contextMenu(false);
-                    cloneBox(object.id);
-                } else {
-                    $(boxContent).contextMenu(true);
-                }
-                break;
-            }
+        boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `" + object.description + "`," + JSON.stringify(object.meta) + ")    ");
+        if (_meta.name) {
+            box.setAttribute('data-title', _meta.name);
+        } else {
+            box.setAttribute('data-title', object.label);
         }
-    });*/
+    }
     $(boxContent).mousedown(function (event) {
         switch (event.which) {
             case 3: {
                 if (event.shiftKey) {
-                    //console.log(JSON.stringify(object));
                     $(boxContent).contextMenu(false);
                     cloneBox(object.id);
                 } else {
@@ -280,6 +250,9 @@ function createObjectBox(object) {
 
     const img = document.createElement("img");
     img.src = object.imgsrc;
+    if (_meta.resim) {
+        img.src = _meta.resim + ".png";
+    }
     img.style.position = 'absolute';
     img.style.left = '50%';
     img.style.height = '90%';
@@ -296,6 +269,19 @@ function createObjectBox(object) {
     boxContent.appendChild(amountBox);
     amountBox.setAttribute('class', 'item-content-footer');
     amountBox.innerHTML = object.amount;
+    if (_meta.level) {
+        const qualitybox = document.createElement("div");
+        boxContent.appendChild(qualitybox);
+        qualitybox.setAttribute('class', 'item-content-footer');
+        qualitybox.style.bottom = '0';
+        qualitybox.style.left = '15px';
+        qualitybox.style["background-image"] = 'url(items/' + _meta.level + 'yildiz.png)';
+        qualitybox.style.filter = 'invert(1) brightness(0.9)';
+        qualitybox.style["background-color"] = 'black';
+        qualitybox.style["border-radius"] = '50%';
+        qualitybox.style.width = '30%'
+        qualitybox.style.height = '30%'
+    }
 
     return box;
 }
@@ -1017,15 +1003,23 @@ grids[1].on('dragMove', function (item, event) {
 
 
 
-function Over(item, desc) {
+function Over(item, desc, meta) {
     var name = document.getElementById("info2");
     var opis = document.getElementById("info3");
     if (item == null) {
         name.innerHTML = "";
         opis.innerHTML = "";
     } else {
-        name.innerHTML = item;
-        opis.innerHTML = desc;
+        if (meta?.name != null) {
+            name.innerHTML = meta.name;
+        } else {
+            name.innerHTML = item;
+        }
+        if (meta?.aciklama != null) {
+            opis.innerHTML = meta.aciklama;
+        } else {
+            opis.innerHTML = desc;
+        }
     }
 }
 
