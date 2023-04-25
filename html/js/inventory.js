@@ -3,65 +3,65 @@ var SecondInventoryActive = false;
 var SplittingObject = null;
 var SplitMode = false;
 
-$(function(){
-	window.onload = (e) => {
-		window.addEventListener('message', (event) => {
-			switch (event.data.type){
-				case 1:	{
-					show(event.data.inventory, event.data.otherinventory, event.data.crafting);
-					getItems(event.data.items, event.data.otheritems, event.data.target, event.data.weight);
+$(function () {
+    window.onload = (e) => {
+        window.addEventListener('message', (event) => {
+            switch (event.data.type) {
+                case 1: {
+                    show(event.data.inventory, event.data.otherinventory, event.data.crafting);
+                    getItems(event.data.items, event.data.otheritems, event.data.target, event.data.weight);
                     $("#money").html(`$${event.data.money}`);
                     $("#clock").html(`${event.data.time}`);
-					break;
-				}
-				case 2: {
-					hide();
-					break;
-				}
-				default: {
-					hide();
-				}
-			}
-		});
-	};
+                    break;
+                }
+                case 2: {
+                    hide();
+                    break;
+                }
+                default: {
+                    hide();
+                }
+            }
+        });
+    };
 });
 
-$(function() {
-	$.contextMenu({
-		selector: '.item-content', 
-		className: 'contextmenu-inventory',
-		callback: function(key, options) {
-			var objectId = options.$trigger.attr('objectId');
-			var nodrop = false;
+$(function () {
+    $.contextMenu({
+        selector: '.item-content',
+        className: 'contextmenu-inventory',
+        callback: function (key, options) {
+            var objectId = options.$trigger.attr('objectId');
+            var nodrop = false;
             var nouse = false;
             var nogive = false;
-			var classname = $(options.$trigger).parent().parent().attr('class');
-			//console.log(classname);
-			if (classname.includes("box0")) {
-				nodrop = true;
+            var classname = $(options.$trigger).parent().parent().attr('class');
+            //console.log(classname);
+            if (classname.includes("box0")) {
+                nodrop = true;
                 nouse = true;
                 nogive = true;
-			}
-			if(key == "use" && !nouse) {
-				var object = getObjectById(objectId);
-				$.post(`https://${GetParentResourceName()}/useitem`, JSON.stringify({
-					data: object
-				}));
-			} else if(key == "split") {
+            }
+            if (key == "use" && !nouse) {
+                var object = getObjectById(objectId);
+                $.post(`https://${GetParentResourceName()}/useitem`, JSON.stringify({
+                    data: object
+                }));
+            } else if (key == "split") {
                 SplittingObject = objectId;
-				ShowSplit(Math.floor(getObjectById(objectId).amount/2));
-			} else if(key == "drop" && !nodrop) {
-				var object = getObjectById(objectId);
-				$.post(`https://${GetParentResourceName()}/dropitem`, JSON.stringify({
-					data: object
-				}));
-			} else if(key == "give" && !nogive) {
-				var object = getObjectById(objectId);
-				$.post(`https://${GetParentResourceName()}/giveitem`, JSON.stringify({
-					data: object
-				}));
-			}
-            else if(key == "transfer") {
+                ShowSplit(Math.floor(getObjectById(objectId).amount / 2));
+            } else if (key == "drop" && !nodrop) {
+                var object = getObjectById(objectId);
+                $.post(`https://${GetParentResourceName()}/dropitem`, JSON.stringify({
+                    data: object
+                }));
+            } else if (key == "give" && !nogive) {
+                var object = getObjectById(objectId);
+                $.post(`https://${GetParentResourceName()}/giveitem`, JSON.stringify({
+                    data: object
+                }));
+            }
+            else if (key == "transfer") {
                 //console.log(SecondInventoryActive)
                 if (SecondInventoryActive) {
                     if (classname.includes("box0")) {
@@ -79,15 +79,15 @@ $(function() {
                     }
                 }
             }
-		},
-		items: {
-			"use": {name: "Use"},
-			"split": {name: "Split"},
-			"drop": {name: "Drop"},
-			"give": {name: "Give"},
-            "transfer": {name: "Transfer"},
-		}
-	});
+        },
+        items: {
+            "use": { name: "Use" },
+            "split": { name: "Split" },
+            "drop": { name: "Drop" },
+            "give": { name: "Give" },
+            "transfer": { name: "Transfer" },
+        }
+    });
 });
 
 function ShowSplit(amt) {
@@ -101,13 +101,13 @@ function ShowSplit(amt) {
     $("#splitamt").focus();
 }
 
-$("#splitConf").click(function() {
-    if(SplittingObject) {
+$("#splitConf").click(function () {
+    if (SplittingObject) {
         var object = getObjectById(SplittingObject);
 
         if (object.amount <= 1 || object.box > 3 || object.type == "item_weapon") return;
         var amount = $("#splitamt").val();
-        if(amount > 0 && amount < object.amount) {
+        if (amount > 0 && amount < object.amount) {
             var val = Math.floor(object.amount - amount);
             setObjectAmount(SplittingObject, val, false);
             addObject({
@@ -121,7 +121,7 @@ $("#splitConf").click(function() {
                 meta: object.meta
             });
         }
-    } 
+    }
     SplitMode = false;
     $("#splitBox").hide();
     $(".inventory").css("pointer-events", "auto");
@@ -130,14 +130,14 @@ $("#splitConf").click(function() {
     $(".grid").css("opacity", "1.0");
 });
 
-$("#splitamt").keyup(function(e) {
-    if(e.key == "Enter") {
-        if(SplittingObject) {
+$("#splitamt").keyup(function (e) {
+    if (e.key == "Enter") {
+        if (SplittingObject) {
             var object = getObjectById(SplittingObject);
-    
+
             if (object.amount <= 1 || object.box > 3 || object.type == "item_weapon") return;
             var amount = $("#splitamt").val();
-            if(amount > 0 && amount < object.amount) {
+            if (amount > 0 && amount < object.amount) {
                 var val = Math.floor(object.amount - amount);
                 setObjectAmount(SplittingObject, val, false);
                 addObject({
@@ -151,7 +151,7 @@ $("#splitamt").keyup(function(e) {
                     meta: object.meta
                 });
             }
-        } 
+        }
         SplitMode = false;
         $("#splitBox").hide();
         $(".inventory").css("pointer-events", "auto");
@@ -170,7 +170,7 @@ $("#splitamt").keyup(function(e) {
     }
 });
 
-$("#splitCancel").click(function() {
+$("#splitCancel").click(function () {
     SplitMode = false;
     $("#splitBox").hide();
     $(".inventory").css("pointer-events", "auto");
@@ -186,7 +186,7 @@ function createObjectBox(object) {
     box.setAttribute('class', 'item');
     box.setAttribute('data-amount', object.amount);
     if (object.box > 3) {
-        document.getElementsByClassName(`slot${object.box-3}`)[0].appendChild(box);
+        document.getElementsByClassName(`slot${object.box - 3}`)[0].appendChild(box);
     } else {
         document.getElementsByClassName(`box${object.box}`)[0].appendChild(box);
     }
@@ -203,35 +203,35 @@ function createObjectBox(object) {
         } else {
             boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `A letter addressed to " + object.meta.name + "`)    ");
         }
-    } else if(object.name == "newspaper") {
+    } else if (object.name == "newspaper") {
         boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `A newspaper (edition " + object.meta.edition + ")`)    ");
-    } else if(object.name == "wateringcan") {
-        if(object.meta.water != undefined && object.meta.water != null) {
+    } else if (object.name == "wateringcan") {
+        if (object.meta.water != undefined && object.meta.water != null) {
             var waterdisp = object.meta.water * 10;
             boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `A watering can (" + waterdisp.toFixed(0) + "% Full)`)    ");
         }
-    } else if(object.name == "canteen") {
-        if(object.meta.water != undefined && object.meta.water != null) {
+    } else if (object.name == "canteen") {
+        if (object.meta.water != undefined && object.meta.water != null) {
             var waterdisp = object.meta.water * 10;
             boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `A canteen (" + waterdisp.toFixed(0) + "% Full)`)    ");
         }
-    } else if(object.type == "item_weapon") {
-        if((object.meta.damage != undefined && object.meta.damage != null) &&
-         (object.meta.dirt != undefined && object.meta.dirt != null)) {
-            boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `" + object.description + " (" + (object.meta.dirt*100).toFixed(2) + "% Dirt, "+(object.meta.damage*100).toFixed(2)+"% Damage)`)    ");
+    } else if (object.type == "item_weapon") {
+        if ((object.meta.damage != undefined && object.meta.damage != null) &&
+            (object.meta.dirt != undefined && object.meta.dirt != null)) {
+            boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `" + object.description + " (" + (object.meta.dirt * 100).toFixed(2) + "% Dirt, " + (object.meta.damage * 100).toFixed(2) + "% Damage)`)    ");
         } else {
             boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `" + object.description + "`)    ");
         }
     } else {
         boxContent.setAttribute('onmouseover', "Over(`" + object.label + "`, `" + object.description + "`)    ");
     }
-    
+
 
     /*
-	$(boxContent).mousedown(function(event) {
-		switch (event.which) {
+    $(boxContent).mousedown(function(event) {
+        switch (event.which) {
             case 1: {
-				if(event.shiftKey) {
+                if(event.shiftKey) {
                     console.log(JSON.stringify(object));
                     if (object.box == 0) {
                         var object = getObjectById(object.id);
@@ -246,34 +246,34 @@ function createObjectBox(object) {
                             target: targetPlayerId
                         }));
                     }
-				}
-				break;
-			}
-			case 3: {
-				if(event.shiftKey) {
-					$(boxContent).contextMenu(false);
-					cloneBox(object.id);
-				} else {
-					$(boxContent).contextMenu(true);
-				}
-				break;
-			}
-		}
-	});*/
-    $(boxContent).mousedown(function(event) {
-		switch (event.which) {
-			case 3: {
-				if(event.shiftKey) {
+                }
+                break;
+            }
+            case 3: {
+                if(event.shiftKey) {
+                    $(boxContent).contextMenu(false);
+                    cloneBox(object.id);
+                } else {
+                    $(boxContent).contextMenu(true);
+                }
+                break;
+            }
+        }
+    });*/
+    $(boxContent).mousedown(function (event) {
+        switch (event.which) {
+            case 3: {
+                if (event.shiftKey) {
                     //console.log(JSON.stringify(object));
-					$(boxContent).contextMenu(false);
-					cloneBox(object.id);
-				} else {
-					$(boxContent).contextMenu(true);
-				}
-				break;
-			}
-		}
-	});
+                    $(boxContent).contextMenu(false);
+                    cloneBox(object.id);
+                } else {
+                    $(boxContent).contextMenu(true);
+                }
+                break;
+            }
+        }
+    });
     const mainContent = document.createElement("div");
     mainContent.setAttribute('class', 'item-content-main');
     boxContent.appendChild(mainContent);
@@ -326,9 +326,9 @@ function cloneBox(id) {
 
 function openContextMenu(id) {
     object = getObjectById(id);
-	new Contextual({
-		items: menuItems
-	});
+    new Contextual({
+        items: menuItems
+    });
 
 
     neighbour = getObjectsByNameAndMeta(object.name, object.meta).find(obj => obj.box == object.box && obj.id != id);
@@ -481,7 +481,7 @@ function onDragFinished(data) {
     }) => name == draggedObject.name && deepEqual(meta, draggedObject.meta));
     if (draggedObject.type == "item_standard") {
         // add amount of objects from this box
-        repeatsAmount = repeats.reduce( (sum, {amount} ) => parseInt(sum) + parseInt(amount), 0 );
+        repeatsAmount = repeats.reduce((sum, { amount }) => parseInt(sum) + parseInt(amount), 0);
         setObjectAmount(data.item._id, parseInt(draggedObject.amount) + parseInt(repeatsAmount), false);
     }
     // set new box value to object
@@ -550,7 +550,7 @@ var grids = [
         dragContainer: document.body,
         dragSort: () => grids,
         sortData: {
-            amount: function(item, element) {
+            amount: function (item, element) {
                 return parseFloat(element.getAttribute('data-amount'));
             }
         },
@@ -558,17 +558,17 @@ var grids = [
             handle: '.item-content-main, .item-content-amount-moved'
         }
     }).on('send', data => onDragFinished(data))
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '16%';
-        item.getElement().style.height = '6vh';
-        grids.forEach(function(grid) {
-            grid.refreshItems();
-        });
-    }),
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '16%';
+            item.getElement().style.height = '6vh';
+            grids.forEach(function (grid) {
+                grid.refreshItems();
+            });
+        }),
 
 
     new Muuri('.box1', {
@@ -576,14 +576,14 @@ var grids = [
         dragContainer: document.body,
         dragSort: () => grids,
         sortData: {
-            amount: function(item, element) {
+            amount: function (item, element) {
                 return parseFloat(element.getAttribute('data-amount'));
             }
         },
         dragStartPredicate: {
             handle: '.item-content-main, .item-content-amount-moved'
         }
-    }).on('send', function(data) {
+    }).on('send', function (data) {
         if (data.toGrid._id == 1) {
             var object = getObjectById(data.item._id);
             $.post(`https://${GetParentResourceName()}/removeitem`, JSON.stringify({
@@ -593,28 +593,28 @@ var grids = [
         }
         onDragFinished(data)
     })
-    .on('beforeReceive', function(data) {
-        if (data.fromGrid._id == 1) {
-            var object = getObjectById(data.item._id);
-            $.post(`https://${GetParentResourceName()}/additem`, JSON.stringify({
-                data: object,
-                target: targetPlayerId
-            }));
-        }
-    })
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '16%';
-        item.getElement().style.height = '6vh';
-        grids.forEach(function(grid) {
-            grid.refreshItems();
-        });
-    }),
+        .on('beforeReceive', function (data) {
+            if (data.fromGrid._id == 1) {
+                var object = getObjectById(data.item._id);
+                $.post(`https://${GetParentResourceName()}/additem`, JSON.stringify({
+                    data: object,
+                    target: targetPlayerId
+                }));
+            }
+        })
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '16%';
+            item.getElement().style.height = '6vh';
+            grids.forEach(function (grid) {
+                grid.refreshItems();
+            });
+        }),
 
-	/*
+    /*
     new Muuri('.box2', {
         dragEnabled: true,
         dragSort: () => grids,
@@ -691,19 +691,19 @@ var grids = [
             handle: '.item-content-main, .item-content-amount-moved'
         }
     }).on('send', data => onDragFinished(data))
-    .on('receive', function(data) {
-        if (GetNumberOfItems(data) > 1 || (data.fromGrid._id < 4 && data.fromGrid._id != 2)) {
-            ItemBack(data);
-        }
-    })
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '85%';
-        item.getElement().style.height = '85%';
-    }),
+        .on('receive', function (data) {
+            if (GetNumberOfItems(data) > 1 || (data.fromGrid._id < 4 && data.fromGrid._id != 2)) {
+                ItemBack(data);
+            }
+        })
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '85%';
+            item.getElement().style.height = '85%';
+        }),
 
     new Muuri('.slot2', {
         dragEnabled: true,
@@ -712,20 +712,20 @@ var grids = [
         dragStartPredicate: {
             handle: '.item-content-main, .item-content-amount-moved'
         }
-    }).on('send', data => onDragFinished(data)).on('receive', function(data) {
+    }).on('send', data => onDragFinished(data)).on('receive', function (data) {
         if (GetNumberOfItems(data) > 1 || (data.fromGrid._id < 4 && data.fromGrid._id != 2)) {
             ItemBack(data);
         }
     })
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '85%';
-        item.getElement().style.height = '85%';
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '85%';
+            item.getElement().style.height = '85%';
 
-    }),
+        }),
 
 
     new Muuri('.slot3', {
@@ -735,20 +735,20 @@ var grids = [
         dragStartPredicate: {
             handle: '.item-content-main, .item-content-amount-moved'
         }
-    }).on('send', data => onDragFinished(data)).on('receive', function(data) {
+    }).on('send', data => onDragFinished(data)).on('receive', function (data) {
         if (GetNumberOfItems(data) > 1 || (data.fromGrid._id < 4 && data.fromGrid._id != 2)) {
             ItemBack(data);
         }
     })
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '85%';
-        item.getElement().style.height = '85%';
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '85%';
+            item.getElement().style.height = '85%';
 
-    }),
+        }),
 
     new Muuri('.slot4', {
         dragEnabled: true,
@@ -757,20 +757,20 @@ var grids = [
         dragStartPredicate: {
             handle: '.item-content-main, .item-content-amount-moved'
         }
-    }).on('send', data => onDragFinished(data)).on('receive', function(data) {
+    }).on('send', data => onDragFinished(data)).on('receive', function (data) {
         if (GetNumberOfItems(data) > 1 || (data.fromGrid._id < 4 && data.fromGrid._id != 2)) {
             ItemBack(data);
         }
     })
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '85%';
-        item.getElement().style.height = '85%';
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '85%';
+            item.getElement().style.height = '85%';
 
-    }),
+        }),
 
     new Muuri('.slot5', {
         dragEnabled: true,
@@ -779,20 +779,20 @@ var grids = [
         dragStartPredicate: {
             handle: '.item-content-main, .item-content-amount-moved'
         }
-    }).on('send', data => onDragFinished(data)).on('receive', function(data) {
+    }).on('send', data => onDragFinished(data)).on('receive', function (data) {
         if (GetNumberOfItems(data) > 1 || (data.fromGrid._id < 4 && data.fromGrid._id != 2)) {
             ItemBack(data);
         }
     })
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '85%';
-        item.getElement().style.height = '85%';
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '85%';
+            item.getElement().style.height = '85%';
 
-    }),
+        }),
 
     new Muuri('.slot6', {
         dragEnabled: true,
@@ -801,20 +801,20 @@ var grids = [
         dragStartPredicate: {
             handle: '.item-content-main, .item-content-amount-moved'
         }
-    }).on('send', data => onDragFinished(data)).on('receive', function(data) {
+    }).on('send', data => onDragFinished(data)).on('receive', function (data) {
         if (GetNumberOfItems(data) > 1 || (data.fromGrid._id < 4 && data.fromGrid._id != 2)) {
             ItemBack(data);
         }
     })
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '85%';
-        item.getElement().style.height = '85%';
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '85%';
+            item.getElement().style.height = '85%';
 
-    }),
+        }),
 
     new Muuri('.slot7', {
         dragEnabled: true,
@@ -823,20 +823,20 @@ var grids = [
         dragStartPredicate: {
             handle: '.item-content-main, .item-content-amount-moved'
         }
-    }).on('send', data => onDragFinished(data)).on('receive', function(data) {
+    }).on('send', data => onDragFinished(data)).on('receive', function (data) {
         if (GetNumberOfItems(data) > 1 || (data.fromGrid._id < 4 && data.fromGrid._id != 2)) {
             ItemBack(data);
         }
     })
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '85%';
-        item.getElement().style.height = '85%';
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '85%';
+            item.getElement().style.height = '85%';
 
-    }),
+        }),
 
     new Muuri('.slot8', {
         dragEnabled: true,
@@ -845,20 +845,20 @@ var grids = [
         dragStartPredicate: {
             handle: '.item-content-main, .item-content-amount-moved'
         }
-    }).on('send', data => onDragFinished(data)).on('receive', function(data) {
+    }).on('send', data => onDragFinished(data)).on('receive', function (data) {
         if (GetNumberOfItems(data) > 1 || (data.fromGrid._id < 4 && data.fromGrid._id != 2)) {
             ItemBack(data);
         }
     })
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '85%';
-        item.getElement().style.height = '85%';
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '85%';
+            item.getElement().style.height = '85%';
 
-    }),
+        }),
 
     new Muuri('.slot9', {
         dragEnabled: true,
@@ -867,20 +867,20 @@ var grids = [
         dragStartPredicate: {
             handle: '.item-content-main, .item-content-amount-moved'
         }
-    }).on('send', data => onDragFinished(data)).on('receive', function(data) {
+    }).on('send', data => onDragFinished(data)).on('receive', function (data) {
         if (GetNumberOfItems(data) > 1 || (data.fromGrid._id < 4 && data.fromGrid._id != 2)) {
             ItemBack(data);
         }
     })
-    .on('dragStart', function(item) {
-        item.getElement().style.width = item.getWidth() + 'px';
-        item.getElement().style.height = item.getHeight() + 'px';
-    })
+        .on('dragStart', function (item) {
+            item.getElement().style.width = item.getWidth() + 'px';
+            item.getElement().style.height = item.getHeight() + 'px';
+        })
 
-    .on('dragReleaseEnd', function(item) {
-        item.getElement().style.width = '85%';
-        item.getElement().style.height = '85%';
-    }),
+        .on('dragReleaseEnd', function (item) {
+            item.getElement().style.width = '85%';
+            item.getElement().style.height = '85%';
+        }),
 ];
 
 function hide() {
@@ -897,7 +897,7 @@ function GetNumberOfItems(data) {
     return grids[data.toGrid._id - 1]._items.length;
 }
 
-$("#craftButton").click(function() {
+$("#craftButton").click(function () {
     const message = [];
 
     for (i = 2; i <= 10; i++) {
@@ -959,7 +959,7 @@ function ItemBack(data) {
 function show(playerInventory, otherInventory, crafting) {
     $("body").css("display", 'block');
 
-    if(otherInventory){
+    if (otherInventory) {
         //console.log("Other inventory")
         $("#selfinv").css("height", "40.5%");
         SecondInventoryActive = true;
@@ -970,21 +970,21 @@ function show(playerInventory, otherInventory, crafting) {
     }
 
     $(".box0").css("display", (otherInventory) ? 'block' : 'none');
-	$(".box1").css("display", (playerInventory) ? 'block' : 'none');
+    $(".box1").css("display", (playerInventory) ? 'block' : 'none');
     $(".grid").css("display", (crafting) ? 'block' : 'none');
     $('.invCraft').css("display", (crafting) ? 'block' : 'none');
-	$(".grid").css("display", 'block');
+    $(".grid").css("display", 'block');
     $(".invCraft").css("display", 'block');
 }
 
 var shiftactive = false;
-$(document).keydown(function(e) {
+$(document).keydown(function (e) {
     if (e.keyCode == 16) {
         shiftactive = true;
     }
 });
 
-grids[1].on('dragMove', function(item, event) {
+grids[1].on('dragMove', function (item, event) {
     var i;
     if (shiftactive) {
         for (i = 0; i < objects.length; i++) {
@@ -1044,7 +1044,7 @@ async function getItems(data, secondInventory, targetPlayer, weight) {
             secondInventory[x].box = 0;
             addObject(secondInventory[x]);
         }
-    } 
+    }
     var weight_object = document.getElementById("weight");
     weight_object.innerHTML = Math.round(weight * 100) / 100 + " / 45 KG";
     grids[0].sort('amount:desc', {
@@ -1057,7 +1057,7 @@ async function getItems(data, secondInventory, targetPlayer, weight) {
 
 
 
-$(document).keyup(function(e) {
+$(document).keyup(function (e) {
     if ((e.keyCode == 27 || e.keyCode == 66) && !SplitMode) { //hide eq
         console.log("SplitMode = " + SplitMode);
         hide();
