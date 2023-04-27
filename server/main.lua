@@ -608,7 +608,7 @@ AddEventHandler(
         local itemData = Config.Items[data.name]
         local Player = RedEM.GetPlayer(_source)
         if itemData.canBeUsed then
-            TriggerEvent("RegisterUsableItem:" .. data.name, _source, data)
+            TriggerEvent("RegisterUsableItem:" .. data.name, _source, data, data.meta or nil)
             --TriggerClientEvent("ak_notification:Left", _source, "Użyto przedmiotu", itemData.label, tonumber(1000))
             TriggerClientEvent("redem_roleplay:NotifyLeft", _source, "Item Used", itemData.label, "generic_textures", "tick", 3000)
             TriggerClientEvent("redemrp_inventory:PlaySound", _source, 1)
