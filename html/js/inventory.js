@@ -33,7 +33,11 @@ function createObjectBox(object) {
   const img = document.createElement("img");
   img.src = object.imgsrc;
   if (_meta.resim) {
-    img.src = _meta.resim;
+    if (_meta.resim.toString().includes(".png")) {
+      img.src = _meta.resim;
+    } else {
+      img.src = _meta.resim + ".png";
+    }
   }
   img.style.position = 'absolute';
   img.style.left = '50%';
@@ -763,6 +767,5 @@ $(document).keyup(function (e) {
     $.post('http:/redemrp_inventory/close');
   }
 });
-
 
 

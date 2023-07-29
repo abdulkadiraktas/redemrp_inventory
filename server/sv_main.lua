@@ -5,9 +5,24 @@ local DroppedItems = {}
 local CreatedLockers = {}
 local SharedInventoryFunctions = {}
 local CreatedCraftings = {}
+local otodropitemdelete = 15
 math.randomseed(os.time())
 AddEventHandler('redemrp_inventory:getData', function(cb)
     cb(SharedInventoryFunctions)
+end)
+
+Citizen.CreateThread(function()
+    while true do
+        Wait(1000)
+        for k, v in pairs(DroppedItems) do
+            print(v.time + otodropitemdelete , os.time())
+            if v.time + otodropitemdelete < os.time() then
+                TriggerClientEvent('redemrp_inventory:removePickup', -1, k)
+                DroppedItems[k] = nil
+            end
+        end
+        TriggerClientEvent("redemrp_inventory:UpdatePickups", -1, DroppedItems)
+    end
 end)
 
 AddEventHandler("redemrp:playerLoaded", function(source, user)
@@ -283,9 +298,6 @@ end)
                     end
                 end)
             end
-            print("Zapisano łącznie: "..saved.." inventory")
-			print("Zapisano łącznie: "..saved_locker.." schowkow")
-
             savePlayerInventory()
         end)
     end)
@@ -312,7 +324,7 @@ AddEventHandler("redemrp_inventory:drop", function(data)
             local charid = user.getSessionVar("charid")
             removeItem(data.name, data.amount, data.meta, identifier , charid)
             TriggerClientEvent("redemrp_inventory:SendItems", _source, PrepareToOutput(Inventory[identifier .. "_" .. charid]) ,  {}, InventoryWeight[identifier .. "_" .. charid])
-            TriggerClientEvent("redemrp_inventory:CreatePickup", _source, data.name , data.amount, data.meta , itemData.label, itemData.imgsrc)
+            TriggerClientEvent("redemrp_inventory:CreatePickup", _source, data.name , data.amount, data.meta , itemData.label, itemData.imgsrc,itemData.obj)
             if itemData.type == "item_weapon" then
                 TriggerClientEvent("redemrp_inventory:removeWeapon", _source, itemData.weaponHash or data.meta.weaponhash)
             end
@@ -330,11 +342,11 @@ AddEventHandler("redemrp_inventory:AddPickupServer", function(name, amount, meta
         label = label,
         img = img or meta.resim,
         inRange = false,
-        coords = {x = x, y = y, z = z}
+        coords = {x = x, y = y, z = z},
+        time = os.time(),
     }
     TriggerClientEvent("redemrp_inventory:UpdatePickups", -1, DroppedItems)
 end)
-
 
 RegisterServerEvent("redemrp_inventory:onPickup")
 AddEventHandler("redemrp_inventory:onPickup", function(id)
@@ -397,9 +409,10 @@ AddEventHandler("redemrp_inventory:ChangeAmmoAmount", function(table)
         local charid = user.getSessionVar("charid")
         local player_inventory =  Inventory[identifier .. "_" .. charid]
         for i,k in pairs(_table) do
-            print(i,json.encode(k))
             local item , id = getInventoryItemFromName(k.name, player_inventory ,k.meta)
-            item.setAmount(tonumber(k.Ammo))
+            if item then
+                item.setAmount(tonumber(k.Ammo))
+            end
         end
     end)
 end)
@@ -823,9 +836,12 @@ function SharedInventoryFunctions.getItem(_source, name , meta)
                   item.setMeta(m)
 				  TriggerClientEvent("redemrp_inventory:SendItems", _source, PrepareToOutput(Inventory[identifier .. "_" .. charid]) ,  {} , InventoryWeight[identifier .. "_" .. charid])
                 end
+                function data.ChangeAmount(a)
+                    item.setAmount(a)
+                end
                 function data.AddItem(amount)
                     local output = false
-		    if data.ItemInfo.type == "item_weapon" then
+		            if data.ItemInfo.type == "item_weapon" then
                         data.ItemMeta = meta or {}
                     end
                     output =  addItem(name, amount, data.ItemMeta, identifier , charid , lvl)
@@ -1124,4 +1140,3 @@ AddEventHandler("redemrp_inventory:deleteInv", function(charid, Callback)
     MySQL.Async.fetchAll('DELETE FROM user_locker WHERE `identifier`=@identifier AND `charid`=@charid;', {identifier = id, charid = charid}, function(result)
         end)
 end)
-
